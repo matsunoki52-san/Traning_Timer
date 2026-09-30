@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>筋トレ インターバルタイマー | FIT TIMER PRO</title>
+
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="筋トレタイマー">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#090d16">
+  <meta name="description" content="スマホで快適に使える本格派筋トレ用インターバルタイマー。HIIT、タバタ、サーキット、筋トレのインターバル管理に最適。">
+
+  <!-- Favicon / Apple Touch Icon using SVG Data URI -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230f172a' stroke='%23ff4b4b' stroke-width='4'/%3E%3Cpath d='M35 28 L35 72 L75 50 Z' fill='%23ff4b4b'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%2300f2fe' stroke-dasharray='10 5' stroke-width='3' opacity='0.7'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230b0f19'/%3E%3Ccircle cx='90' cy='90' r='70' fill='none' stroke='url(%23g)' stroke-width='10'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff3366'/%3E%3Cstop offset='100%25' stop-color='%2300f2fe'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M75 55 L75 125 L130 90 Z' fill='%23ffffff'/%3E%3C/svg%3E">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       CSS VARIABLES & THEME DEFINITIONS
+       ========================================================================== */
+    :root {
+      /* Base Colors */
+      --bg-main: #07090e;
+      --bg-card: rgba(22, 27, 41, 0.7);
+      --bg-card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      /* Phase Colors: Idle / Default */
+      --phase-color: #6366f1;
+      --phase-color-glow: rgba(99, 102, 241, 0.4);
+      --phase-gradient: linear-gradient(135deg, #4f46e5, #06b6d4);
+      --phase-bg: radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.15) 0%, rgba(7, 9, 14, 0.95) 75%);
+
+      /* Phase Colors: Prepare */
+      --color-prepare: #f59e0b;
+      --color-prepare-glow: rgba(245, 158, 11, 0.4);
+      --gradient-prepare: linear-gradient(135deg, #f59e0b, #fbbf24);
+
+      /* Phase Colors: Work (High Energy Red/Orange) */
+      --color-work: #ff385c;
+      --color-work-glow: rgba(255, 56, 92, 0.45);
+      --gradient-work: linear-gradient(135deg, #ff1744, #ff6b35);
+
+      /* Phase Colors: Rest (Relaxing Blue/Cyan) */
+      --color-rest: #00d2ff;
+      --color-rest-glow: rgba(0, 210, 255, 0.4);
+      --gradient-rest: linear-gradient(135deg, #0099ff, #00f2fe);
+
+      /* Phase Colors: Finished (Victory Gold/Green) */
+      --color-finish: #10b981;
+      --color-finish-glow: rgba(16, 185, 129, 0.4);
+      --gradient-finish: linear-gradient(135deg, #10b981, #34d399);
+
+      /* Radii & Shadows */
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-full: 9999px;
+      --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+      --shadow-glow: 0 0 25px var(--phase-color-glow);
+
+      /* Safe areas */
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+    }
+
+    /* Phase Dynamic Themes via body dataset */
+    body[data-phase="IDLE"] {
+      --phase-color: #818cf8;
+      --phase-color-glow: rgba(129, 140, 248, 0.35);
+      --phase-gradient: linear-gradient(135deg, #6366f1, #3b82f6);
+      --phase-bg: radial-gradient(circle at 50% 25%, rgba(99, 102, 241, 0.18) 0%, rgba(7, 9, 14, 0.98) 70%);
+    }
+    body[data-phase="PREPARE"] {
+      --phase-color: var(--color-prepare);
+      --phase-color-glow: var(--color-prepare-glow);
+      --phase-gradient: var(--gradient-prepare);
+      --phase-bg: radial-gradient(circle at 50% 25%, rgba(245, 158, 11, 0.22) 0%, rgba(7, 9, 14, 0.98) 70%);
+    }
+    body[data-phase="WORK"] {
+      --phase-color: var(--color-work);
+      --phase-color-glow: var(--color-work-glow);
+      --phase-gradient: var(--gradient-work);
+      --phase-bg: radial-gradient(circle at 50% 25%, rgba(255, 23, 68, 0.28) 0%, rgba(7, 9, 14, 0.98) 72%);
+    }
+    body[data-phase="REST"] {
+      --phase-color: var(--color-rest);
+      --phase-color-glow: var(--color-rest-glow);
+      --phase-gradient: var(--gradient-rest);
+      --phase-bg: radial-gradient(circle at 50% 25%, rgba(0, 210, 255, 0.24) 0%, rgba(7, 9, 14, 0.98) 70%);
+    }
+    body[data-phase="FINISHED"] {
+      --phase-color: var(--color-finish);
+      --phase-color-glow: var(--color-finish-glow);
+      --phase-gradient: var(--gradient-finish);
+      --phase-bg: radial-gradient(circle at 50% 25%, rgba(16, 185, 129, 0.25) 0%, rgba(7, 9, 14, 0.98) 70%);
+    }
+
+    /* ==========================================================================
+       RESET & BASE STYLES
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      touch-action: manipulation;
+    }
+
+    body {
+      background-image: var(--phase-bg);
+      background-attachment: fixed;
+      transition: background-image 0.5s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      padding: calc(var(--sat) + 10px) calc(var(--sar) + 16px) calc(var(--sab) + 14px) calc(var(--sal) + 16px);
+    }
+
+    button {
+      font-family: inherit;
+      border: none;
+      background: none;
+      color: inherit;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    button:active {
+      transform: scale(0.96);
+    }
+
+    input, select {
+      font-family: inherit;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 15px;
+      outline: none;
+      user-select: auto;
+      -webkit-user-select: auto;
+    }
+    input:focus, select:focus {
+      border-color: var(--phase-color);
+      box-shadow: 0 0 0 2px var(--phase-color-glow);
+    }
+
+    /* ==========================================================================
+       HEADER & TOP CONTROLS
+       ========================================================================== */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      padding-bottom: 6px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--phase-gradient);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 12px var(--phase-color-glow);
+      transition: all 0.4s ease;
+    }
+    .brand-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: #ffffff;
+    }
+    .brand-text {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .brand-tag {
+      font-size: 9px;
+      font-weight: 800;
+      color: #000;
+      background: var(--phase-color);
+      padding: 1px 5px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: background 0.4s ease;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-full);
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      position: relative;
+    }
+    .icon-btn:hover, .icon-btn.active {
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+
+    /* Wakelock indicator dot */
+    .wakelock-dot {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .wakelock-active .wakelock-dot {
+      opacity: 1;
+    }
+
+    /* ==========================================================================
+       PRESET PICKER BAR (HORIZONTAL CHIPS)
+       ========================================================================== */
+    .preset-section {
+      width: 100%;
+      max-width: 520px;
+      margin: 4px auto 10px;
+    }
+    .preset-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 4px 2px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .preset-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .preset-chip {
+      flex: 0 0 auto;
+      padding: 7px 14px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--bg-card-border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+    .preset-chip:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text-main);
+    }
+    .preset-chip.active {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--phase-color);
+      color: var(--text-main);
+      box-shadow: 0 0 14px var(--phase-color-glow);
+    }
+    .preset-chip-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--phase-color);
+    }
+
+    .manage-preset-chip {
+      padding: 7px 12px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px dashed rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+    }
+
+    /* ==========================================================================
+       MAIN TIMER DISPLAY
+       ========================================================================== */
+    .timer-container {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex: 1;
+      min-height: 290px;
+    }
+
+    /* Circular SVG Gauge */
+    .gauge-wrapper {
+      position: relative;
+      width: min(72vw, 310px);
+      height: min(72vw, 310px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gauge-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      overflow: visible;
+      filter: drop-shadow(0 0 18px var(--phase-color-glow));
+      transition: filter 0.4s ease;
+    }
+
+    .gauge-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.06);
+      stroke-width: 8;
+    }
+
+    .gauge-progress {
+      fill: none;
+      stroke: var(--phase-color);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 816.8; /* 2 * PI * 130 */
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.15s linear, stroke 0.4s ease;
+    }
+
+    /* Center Content Inside Gauge */
+    .gauge-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .phase-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #ffffff;
+      background: var(--phase-color);
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 2px 10px var(--phase-color-glow);
+      margin-bottom: 6px;
+      transition: all 0.3s ease;
+      transform-origin: center;
+    }
+    .phase-badge.pulse {
+      animation: badgePulse 1.2s infinite ease-in-out;
+    }
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* Giant Digital Timer */
+    .digital-timer {
+      font-family: 'Chakra Petch', monospace, sans-serif;
+      font-size: min(19vw, 82px);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -2px;
+      color: #ffffff;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      margin: 4px 0 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Sub information (Sets & Next Phase) */
+    .set-counter {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .set-counter strong {
+      color: var(--text-main);
+      font-size: 15px;
+    }
+
+    .next-phase-info {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      margin-top: 6px;
+      min-height: 18px;
+    }
+    .next-phase-info span {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Total Stats Footer Bar */
+    .timer-stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      margin-top: 14px;
+      box-shadow: var(--shadow-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .stat-value {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .stat-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--bg-card-border);
+    }
+
+    /* ==========================================================================
+       QUICK ADJUSTERS (IN-WORK/REST JUMP)
+       ========================================================================== */
+    .quick-adjust-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 8px 0;
+      width: 100%;
+      max-width: 520px;
+    }
+    .adjust-btn {
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--bg-card-border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .adjust-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+
+    /* ==========================================================================
+       MAIN CONTROLS (BOTTOM ACTION BUTTONS)
+       ========================================================================== */
+    .controls-container {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      align-items: center;
+      gap: 12px;
+      padding-top: 8px;
+    }
+
+    .ctrl-side-btn {
+      height: 56px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: var(--shadow-glass);
+      backdrop-filter: blur(10px);
+    }
+    .ctrl-side-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .ctrl-side-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .ctrl-main-btn {
+      height: 64px;
+      border-radius: var(--radius-lg);
+      background: var(--phase-gradient);
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 25px var(--phase-color-glow);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .ctrl-main-btn::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
+      pointer-events: none;
+    }
+    .ctrl-main-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 4px 15px var(--phase-color-glow);
+    }
+    .ctrl-main-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    /* ==========================================================================
+       MODALS & DIALOGS (SETTINGS, PRESET MANAGER, VICTORY)
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 520px;
+      background: #111624;
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding: 22px 20px calc(var(--sab) + 24px);
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+    }
+    .modal-backdrop.open .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .form-hint {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: normal;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .time-picker-box {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      gap: 6px;
+    }
+    .time-picker-box input {
+      border: none;
+      background: transparent;
+      padding: 6px 0;
+      font-size: 18px;
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 700;
+      text-align: center;
+      width: 100%;
+    }
+    .time-picker-unit {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+
+    .stepper-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+    }
+    .step-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stepper-val {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    /* Preset list items in modal */
+    .preset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .preset-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--bg-card-border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .preset-item.active {
+      border-color: #6366f1;
+      background: rgba(99, 102, 241, 0.08);
+    }
+    .preset-item-info {
+      flex: 1;
+      cursor: pointer;
+    }
+    .preset-item-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+    .preset-item-specs {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .preset-item-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .preset-action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+    .preset-action-btn.delete:hover {
+      color: #ff385c;
+      background: rgba(255, 56, 92, 0.15);
+    }
+
+    .modal-submit-btn {
+      width: 100%;
+      height: 52px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      box-shadow: 0 4px 20px rgba(79, 70, 229, 0.4);
+    }
+
+    /* Victory Celebration Modal */
+    .victory-modal .modal-card {
+      text-align: center;
+      padding: 30px 20px calc(var(--sab) + 30px);
+    }
+    .victory-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 36px;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+      animation: bounce 0.8s ease;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    /* PWA Install Banner Notice */
+    .ios-install-banner {
+      display: none;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .ios-install-banner.show {
+      display: flex;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--sab) + 80px);
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(22, 27, 41, 0.95);
+      border: 1px solid var(--bg-card-border);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body data-phase="IDLE">
+
+  <!-- ==========================================================================
+       HEADER
+       ========================================================================== -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+      </div>
+      <div class="brand-text">
+        FIT TIMER <span class="brand-tag">PRO</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Sound toggle -->
+      <button id="soundToggleBtn" class="icon-btn active" title="サウンド切替" aria-label="サウンド切替">
+        <svg id="soundIconOn" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <svg id="soundIconOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="display:none;"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </button>
+
+      <!-- WakeLock / Screen Keep Awake status -->
+      <button id="wakeLockBtn" class="icon-btn active" title="常時点灯 (スリープ防止)" aria-label="常時点灯切替">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span class="wakelock-dot"></span>
+      </button>
+
+      <!-- Manage Presets / Settings button -->
+      <button id="openPresetsModalBtn" class="icon-btn" title="メニュー・設定" aria-label="メニュー設定">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       PRESET PICKER CHIPS (ONE-TAP SWITCH)
+       ========================================================================== -->
+  <section class="preset-section">
+    <div class="preset-bar" id="presetChipsContainer">
+      <!-- Generated via JS -->
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       MAIN TIMER DISPLAY
+       ========================================================================== -->
+  <main class="timer-container">
+    <div class="gauge-wrapper">
+      <svg class="gauge-svg" viewBox="0 0 300 300">
+        <!-- Background track -->
+        <circle class="gauge-bg" cx="150" cy="150" r="130"></circle>
+        <!-- Animated progress -->
+        <circle id="gaugeProgress" class="gauge-progress" cx="150" cy="150" r="130"></circle>
+      </svg>
+
+      <div class="gauge-content">
+        <!-- Current phase badge -->
+        <div id="phaseBadge" class="phase-badge">READY</div>
+
+        <!-- Giant Digits -->
+        <div id="digitalTimer" class="digital-timer">00:20</div>
+
+        <!-- Set Counter -->
+        <div class="set-counter">
+          <span>SET</span>
+          <strong id="setIndicator">1 / 8</strong>
+        </div>
+
+        <!-- Next phase preview -->
+        <div id="nextPhaseInfo" class="next-phase-info">
+          次: <span>REST 00:10</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Time Adjusters (+5s / -5s) -->
+    <div class="quick-adjust-bar">
+      <button class="adjust-btn" id="minus5SecBtn">− 5秒</button>
+      <button class="adjust-btn" id="skipPhaseBtn">スキップ ⏩</button>
+      <button class="adjust-btn" id="plus5SecBtn">+ 5秒</button>
+    </div>
+
+    <!-- Overall Total Stats -->
+    <div class="timer-stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">現在のメニュー</span>
+        <span id="statPresetName" class="stat-value" style="font-family:'Outfit'">HIIT (タバタ)</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">残り総時間</span>
+        <span id="statRemainingTotal" class="stat-value">04:00</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">全セット時間</span>
+        <span id="statOverallTotal" class="stat-value">04:00</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==========================================================================
+       BOTTOM CONTROLS
+       ========================================================================== -->
+  <footer class="controls-container">
+    <!-- Reset Button -->
+    <button id="resetBtn" class="ctrl-side-btn" title="タイマーをリセット">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      <span>リセット</span>
+    </button>
+
+    <!-- Main Start / Pause Button -->
+    <button id="mainToggleBtn" class="ctrl-main-btn">
+      <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      <span id="mainBtnText">START</span>
+    </button>
+
+    <!-- Quick Edit Current Preset Button -->
+    <button id="quickEditBtn" class="ctrl-side-btn" title="時間を微調整">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>設定編集</span>
+    </button>
+  </footer>
+
+  <!-- ==========================================================================
+       MODAL: PRESET MANAGER & SETTINGS
+       ========================================================================== -->
+  <div class="modal-backdrop" id="presetsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          メニューの選択・管理
+        </h2>
+        <button class="close-btn" id="closePresetsModalBtn">✕</button>
+      </div>
+
+      <!-- Presets List -->
+      <div class="preset-list" id="modalPresetList">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Button to toggle Create Form -->
+      <button id="toggleCreateFormBtn" class="modal-submit-btn" style="background: rgba(255,255,255,0.08); border: 1px dashed rgba(255,255,255,0.2); box-shadow:none;">
+        + 新しいメニューを作成する
+      </button>
+
+      <!-- New / Edit Form (hidden by default) -->
+      <div id="presetFormContainer" style="display:none; margin-top:20px; padding-top:16px; border-top: 1px solid var(--bg-card-border);">
+        <h3 id="formTitle" style="font-size:16px; margin-bottom:14px; color:var(--text-main);">新規メニュー作成</h3>
+        
+        <div class="form-group">
+          <label class="form-label">メニュー名</label>
+          <input type="text" id="inputPresetName" placeholder="例: 腹筋強化サーキット" maxlength="24" style="width:100%;">
+        </div>
+
+        <div class="form-row-2">
+          <!-- Work Time -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>🔥 トレーニング</span>
+            </label>
+            <div class="time-picker-box">
+              <input type="number" id="inputWorkMin" min="0" max="59" value="0">
+              <span class="time-picker-unit">分</span>
+              <input type="number" id="inputWorkSec" min="1" max="59" value="20">
+              <span class="time-picker-unit">秒</span>
+            </div>
+          </div>
+
+          <!-- Rest Time -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>💤 インターバル</span>
+            </label>
+            <div class="time-picker-box">
+              <input type="number" id="inputRestMin" min="0" max="59" value="0">
+              <span class="time-picker-unit">分</span>
+              <input type="number" id="inputRestSec" min="0" max="59" value="10">
+              <span class="time-picker-unit">秒</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <!-- Sets count -->
+          <div class="form-group">
+            <label class="form-label">🔁 セット数</label>
+            <div class="stepper-box">
+              <button class="step-btn" id="setMinusBtn" type="button">−</button>
+              <span class="stepper-val" id="inputSetsDisplay">8</span>
+              <button class="step-btn" id="setPlusBtn" type="button">+</button>
+            </div>
+          </div>
+
+          <!-- Prepare countdown -->
+          <div class="form-group">
+            <label class="form-label">⏳ 準備時間</label>
+            <div class="stepper-box">
+              <button class="step-btn" id="prepMinusBtn" type="button">−</button>
+              <span class="stepper-val" id="inputPrepDisplay">5秒</span>
+              <button class="step-btn" id="prepPlusBtn" type="button">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button id="cancelFormBtn" type="button" class="modal-submit-btn" style="background:rgba(255,255,255,0.06); box-shadow:none; flex:1;">
+            キャンセル
+          </button>
+          <button id="savePresetBtn" type="button" class="modal-submit-btn" style="flex:2;">
+            💾 メニューを保存
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: VICTORY CELEBRATION
+       ========================================================================== -->
+  <div class="modal-backdrop victory-modal" id="victoryModal">
+    <div class="modal-card">
+      <div class="victory-icon">🏆</div>
+      <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">WORKOUT COMPLETE!</h2>
+      <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">
+        すべてのセットが完了しました！お疲れ様でした🔥
+      </p>
+
+      <div style="background:rgba(255,255,255,0.05); border-radius:var(--radius-md); padding:16px; margin-bottom:22px; text-align:left;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="color:var(--text-dim); font-size:13px;">メニュー名</span>
+          <span id="victoryPresetName" style="font-weight:700;">HIIT</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="color:var(--text-dim); font-size:13px;">完了セット数</span>
+          <span id="victorySets" style="font-weight:700; color:#10b981;">8 / 8</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--text-dim); font-size:13px;">合計時間</span>
+          <span id="victoryTotalTime" style="font-weight:700; font-family:'Chakra Petch'">04:00</span>
+        </div>
+      </div>
+
+      <button id="closeVictoryBtn" class="modal-submit-btn" style="background:var(--gradient-finish); box-shadow: 0 4px 20px rgba(16,185,129,0.4);">
+        お疲れ様でした！閉じる
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">設定を保存しました</div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT LOGIC
+       ========================================================================== -->
+  <script>
+    /* ==========================================================================
+       1. WEB AUDIO API SYNTHESIZER (No external audio files needed!)
+       ========================================================================== */
+    class SoundController {
+      constructor() {
+        this.ctx = null;
+        this.soundEnabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // Short beep for countdown (3, 2, 1)
+      playCountdownBeep() {
+        if (!this.soundEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, this.ctx.currentTime); // 800Hz
+        
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.15);
+
+        // Mobile vibration if supported
+        if (navigator.vibrate) navigator.vibrate(60);
+      }
+
+      // Stronger whistle / high beep for phase switch (WORK or REST start)
+      playPhaseSwitchSound(isWork = true) {
+        if (!this.soundEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'triangle';
+        const startFreq = isWork ? 659.25 : 880; // E5 or A5
+        const endFreq = isWork ? 1318.51 : 1760; // E6 or A6
+
+        osc.frequency.setValueAtTime(startFreq, t);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, t + 0.12);
+
+        gain.gain.setValueAtTime(0.5, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(t + 0.45);
+
+        if (navigator.vibrate) navigator.vibrate([120, 80, 200]);
+      }
+
+      // Fanfare for complete
+      playVictorySound() {
+        if (!this.soundEnabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const t = this.ctx.currentTime + idx * 0.14;
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+
+          gain.gain.setValueAtTime(0.4, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + (idx === notes.length - 1 ? 0.6 : 0.25));
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(t);
+          osc.stop(t + (idx === notes.length - 1 ? 0.6 : 0.25));
+        });
+
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 300]);
+      }
+    }
+
+    /* ==========================================================================
+       2. WAKELOCK CONTROLLER (Prevent Screen Sleep)
+       ========================================================================== */
+    class WakeLockController {
+      constructor(onStateChange) {
+        this.wakeLock = null;
+        this.isActive = false;
+        this.onStateChange = onStateChange;
+
+        // Auto re-acquire when returning to tab
+        document.addEventListener('visibilitychange', () => {
+          if (this.isActive && document.visibilityState === 'visible') {
+            this.requestLock();
+          }
+        });
+      }
+
+      async requestLock() {
+        if ('wakeLock' in navigator) {
+          try {
+            this.wakeLock = await navigator.wakeLock.request('screen');
+            this.isActive = true;
+            this.wakeLock.addEventListener('release', () => {
+              if (this.isActive) {
+                // Was released externally, re-request if we are still active
+                this.requestLock();
+              }
+            });
+            if (this.onStateChange) this.onStateChange(true);
+          } catch (err) {
+            console.log('WakeLock error:', err);
+            this.isActive = false;
+            if (this.onStateChange) this.onStateChange(false);
+          }
+        } else {
+          // WakeLock not supported
+          if (this.onStateChange) this.onStateChange(false);
+        }
+      }
+
+      releaseLock() {
+        this.isActive = false;
+        if (this.wakeLock) {
+          this.wakeLock.release().catch(() => {});
+          this.wakeLock = null;
+        }
+        if (this.onStateChange) this.onStateChange(false);
+      }
+    }
+
+    /* ==========================================================================
+       3. PRESET STORAGE MANAGER (LocalStorage with Defaults)
+       ========================================================================== */
+    const STORAGE_KEY_PRESETS = 'fit_timer_presets_v1';
+    const STORAGE_KEY_ACTIVE_ID = 'fit_timer_active_preset_id';
+
+    const DEFAULT_PRESETS = [
+      {
+        id: 'tabata',
+        name: 'HIIT (タバタ式)',
+        workSec: 20,
+        restSec: 10,
+        sets: 8,
+        prepSec: 5,
+        isDefault: true
+      },
+      {
+        id: 'abs_circuit',
+        name: '体幹・腹筋サーキット',
+        workSec: 30,
+        restSec: 15,
+        sets: 6,
+        prepSec: 5,
+        isDefault: true
+      },
+      {
+        id: 'strength',
+        name: '筋トレ標準 (45s/60s)',
+        workSec: 45,
+        restSec: 60,
+        sets: 4,
+        prepSec: 5,
+        isDefault: true
+      },
+      {
+        id: 'quick_stretch',
+        name: 'クイックストレッチ',
+        workSec: 40,
+        restSec: 10,
+        sets: 5,
+        prepSec: 3,
+        isDefault: true
+      }
+    ];
+
+    class PresetManager {
+      constructor() {
+        this.presets = this.loadPresets();
+        this.activePresetId = localStorage.getItem(STORAGE_KEY_ACTIVE_ID) || this.presets[0].id;
+      }
+
+      loadPresets() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_PRESETS);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              return parsed;
+            }
+          }
+        } catch (e) {
+          console.error('Failed to parse stored presets', e);
+        }
+        this.savePresets(DEFAULT_PRESETS);
+        return [...DEFAULT_PRESETS];
+      }
+
+      savePresets(presets) {
+        this.presets = presets;
+        localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(presets));
+      }
+
+      getActivePreset() {
+        const found = this.presets.find(p => p.id === this.activePresetId);
+        return found || this.presets[0];
+      }
+
+      setActivePreset(id) {
+        this.activePresetId = id;
+        localStorage.setItem(STORAGE_KEY_ACTIVE_ID, id);
+      }
+
+      addOrUpdatePreset(preset) {
+        const idx = this.presets.findIndex(p => p.id === preset.id);
+        if (idx >= 0) {
+          this.presets[idx] = preset;
+        } else {
+          this.presets.push(preset);
+        }
+        this.savePresets(this.presets);
+        this.setActivePreset(preset.id);
+      }
+
+      deletePreset(id) {
+        if (this.presets.length <= 1) {
+          alert('少なくとも1つのメニューを残してください。');
+          return false;
+        }
+        this.presets = this.presets.filter(p => p.id !== id);
+        this.savePresets(this.presets);
+        if (this.activePresetId === id) {
+          this.setActivePreset(this.presets[0].id);
+        }
+        return true;
+      }
+    }
+
+    /* ==========================================================================
+       4. TIMER ENGINE & APP CONTROLLER
+       ========================================================================== */
+    const PHASES = {
+      IDLE: 'IDLE',
+      PREPARE: 'PREPARE',
+      WORK: 'WORK',
+      REST: 'REST',
+      FINISHED: 'FINISHED'
+    };
+
+    class IntervalTimerApp {
+      constructor() {
+        this.sound = new SoundController();
+        this.wakeLock = new WakeLockController(active => this.updateWakeLockUI(active));
+        this.presetMgr = new PresetManager();
+
+        // Timer States
+        this.phase = PHASES.IDLE;
+        this.isRunning = false;
+        this.currentSet = 1;
+        this.phaseRemainingSec = 0;
+        this.phaseTotalDuration = 0;
+        
+        // High-precision timing
+        this.timerInterval = null;
+        this.lastTimestamp = null;
+        this.accumulatedMs = 0;
+
+        // Cache DOM elements
+        this.initDOMElements();
+
+        // Bind events
+        this.bindEvents();
+
+        // Initial setup
+        this.applyPreset(this.presetMgr.getActivePreset());
+        this.renderPresetChips();
+      }
+
+      initDOMElements() {
+        this.body = document.body;
+        this.digitalTimer = document.getElementById('digitalTimer');
+        this.phaseBadge = document.getElementById('phaseBadge');
+        this.setIndicator = document.getElementById('setIndicator');
+        this.nextPhaseInfo = document.getElementById('nextPhaseInfo');
+        this.gaugeProgress = document.getElementById('gaugeProgress');
+        
+        this.mainToggleBtn = document.getElementById('mainToggleBtn');
+        this.playIcon = document.getElementById('playIcon');
+        this.pauseIcon = document.getElementById('pauseIcon');
+        this.mainBtnText = document.getElementById('mainBtnText');
+        this.resetBtn = document.getElementById('resetBtn');
+        this.quickEditBtn = document.getElementById('quickEditBtn');
+
+        this.minus5SecBtn = document.getElementById('minus5SecBtn');
+        this.plus5SecBtn = document.getElementById('plus5SecBtn');
+        this.skipPhaseBtn = document.getElementById('skipPhaseBtn');
+
+        this.statPresetName = document.getElementById('statPresetName');
+        this.statRemainingTotal = document.getElementById('statRemainingTotal');
+        this.statOverallTotal = document.getElementById('statOverallTotal');
+
+        this.presetChipsContainer = document.getElementById('presetChipsContainer');
+        this.soundToggleBtn = document.getElementById('soundToggleBtn');
+        this.soundIconOn = document.getElementById('soundIconOn');
+        this.soundIconOff = document.getElementById('soundIconOff');
+        this.wakeLockBtn = document.getElementById('wakeLockBtn');
+
+        // Modals
+        this.presetsModal = document.getElementById('presetsModal');
+        this.openPresetsModalBtn = document.getElementById('openPresetsModalBtn');
+        this.closePresetsModalBtn = document.getElementById('closePresetsModalBtn');
+        this.modalPresetList = document.getElementById('modalPresetList');
+        this.toggleCreateFormBtn = document.getElementById('toggleCreateFormBtn');
+        this.presetFormContainer = document.getElementById('presetFormContainer');
+        this.formTitle = document.getElementById('formTitle');
+        this.inputPresetName = document.getElementById('inputPresetName');
+        this.inputWorkMin = document.getElementById('inputWorkMin');
+        this.inputWorkSec = document.getElementById('inputWorkSec');
+        this.inputRestMin = document.getElementById('inputRestMin');
+        this.inputRestSec = document.getElementById('inputRestSec');
+        this.inputSetsDisplay = document.getElementById('inputSetsDisplay');
+        this.inputPrepDisplay = document.getElementById('inputPrepDisplay');
+        this.setMinusBtn = document.getElementById('setMinusBtn');
+        this.setPlusBtn = document.getElementById('setPlusBtn');
+        this.prepMinusBtn = document.getElementById('prepMinusBtn');
+        this.prepPlusBtn = document.getElementById('prepPlusBtn');
+        this.savePresetBtn = document.getElementById('savePresetBtn');
+        this.cancelFormBtn = document.getElementById('cancelFormBtn');
+
+        // Victory Modal
+        this.victoryModal = document.getElementById('victoryModal');
+        this.closeVictoryBtn = document.getElementById('closeVictoryBtn');
+        this.victoryPresetName = document.getElementById('victoryPresetName');
+        this.victorySets = document.getElementById('victorySets');
+        this.victoryTotalTime = document.getElementById('victoryTotalTime');
+
+        // Form state
+        this.formSets = 8;
+        this.formPrepSec = 5;
+        this.editingPresetId = null;
+
+        // Toast
+        this.toast = document.getElementById('toast');
+      }
+
+      bindEvents() {
+        // Main controls
+        this.mainToggleBtn.addEventListener('click', () => this.toggleStartPause());
+        this.resetBtn.addEventListener('click', () => this.resetTimer());
+        this.quickEditBtn.addEventListener('click', () => this.openEditCurrentPreset());
+
+        // Quick adjusters
+        this.minus5SecBtn.addEventListener('click', () => this.adjustPhaseTime(-5));
+        this.plus5SecBtn.addEventListener('click', () => this.adjustPhaseTime(5));
+        this.skipPhaseBtn.addEventListener('click', () => this.skipCurrentPhase());
+
+        // Sound toggle
+        this.soundToggleBtn.addEventListener('click', () => this.toggleSound());
+
+        // Wakelock toggle
+        this.wakeLockBtn.addEventListener('click', () => {
+          if (this.wakeLock.isActive) {
+            this.wakeLock.releaseLock();
+            this.showToast('常時点灯を解除しました');
+          } else {
+            this.wakeLock.requestLock();
+            this.showToast('常時点灯 (スリープ防止) を有効化しました');
+          }
+        });
+
+        // Modals
+        this.openPresetsModalBtn.addEventListener('click', () => this.openPresetsModal());
+        this.closePresetsModalBtn.addEventListener('click', () => this.closePresetsModal());
+        this.presetsModal.addEventListener('click', (e) => {
+          if (e.target === this.presetsModal) this.closePresetsModal();
+        });
+
+        // Form toggle
+        this.toggleCreateFormBtn.addEventListener('click', () => this.openCreateForm());
+        this.cancelFormBtn.addEventListener('click', () => this.hideForm());
+        this.savePresetBtn.addEventListener('click', () => this.handleSavePreset());
+
+        // Steppers
+        this.setMinusBtn.addEventListener('click', () => {
+          if (this.formSets > 1) {
+            this.formSets--;
+            this.inputSetsDisplay.textContent = this.formSets;
+          }
+        });
+        this.setPlusBtn.addEventListener('click', () => {
+          if (this.formSets < 99) {
+            this.formSets++;
+            this.inputSetsDisplay.textContent = this.formSets;
+          }
+        });
+
+        this.prepMinusBtn.addEventListener('click', () => {
+          if (this.formPrepSec > 0) {
+            this.formPrepSec = Math.max(0, this.formPrepSec - 1);
+            this.inputPrepDisplay.textContent = this.formPrepSec + '秒';
+          }
+        });
+        this.prepPlusBtn.addEventListener('click', () => {
+          if (this.formPrepSec < 30) {
+            this.formPrepSec += 1;
+            this.inputPrepDisplay.textContent = this.formPrepSec + '秒';
+          }
+        });
+
+        // Victory Modal
+        this.closeVictoryBtn.addEventListener('click', () => {
+          this.victoryModal.classList.remove('open');
+          this.resetTimer();
+        });
+
+        // Auto unlock audio on any first user touch
+        const unlockAudio = () => {
+          this.sound.init();
+          window.removeEventListener('touchstart', unlockAudio);
+          window.removeEventListener('click', unlockAudio);
+        };
+        window.addEventListener('touchstart', unlockAudio, { passive: true });
+        window.addEventListener('click', unlockAudio, { passive: true });
+      }
+
+      /* --------------------------------------------------------------------------
+         Preset Application & Switching
+         -------------------------------------------------------------------------- */
+      applyPreset(preset) {
+        this.currentPreset = preset;
+        this.presetMgr.setActivePreset(preset.id);
+
+        this.currentSet = 1;
+        this.phase = PHASES.IDLE;
+        this.isRunning = false;
+        clearInterval(this.timerInterval);
+
+        // Calculate initial work duration
+        this.phaseRemainingSec = preset.workSec;
+        this.phaseTotalDuration = preset.workSec;
+
+        this.updateThemeAndBadge();
+        this.updateDisplay();
+        this.updateStats();
+        this.updateMainButtonState();
+        this.renderPresetChips();
+      }
+
+      renderPresetChips() {
+        const presets = this.presetMgr.presets;
+        const activeId = this.presetMgr.activePresetId;
+
+        this.presetChipsContainer.innerHTML = '';
+        presets.forEach(p => {
+          const chip = document.createElement('button');
+          chip.className = `preset-chip ${p.id === activeId ? 'active' : ''}`;
+          chip.innerHTML = `
+            <span class="preset-chip-dot"></span>
+            <span>${this.escapeHtml(p.name)}</span>
+          `;
+          chip.addEventListener('click', () => {
+            if (this.isRunning) {
+              if (!confirm('タイマー実行中です。メニューを切り替えますか？')) return;
+            }
+            this.applyPreset(p);
+            this.showToast(`「${p.name}」をセットしました`);
+          });
+          this.presetChipsContainer.appendChild(chip);
+        });
+
+        // Add "+ 追加/管理" chip at the end
+        const manageChip = document.createElement('button');
+        manageChip.className = 'preset-chip manage-preset-chip';
+        manageChip.innerHTML = `<span>⚙️ メニュー管理</span>`;
+        manageChip.addEventListener('click', () => this.openPresetsModal());
+        this.presetChipsContainer.appendChild(manageChip);
+      }
+
+      /* --------------------------------------------------------------------------
+         Timer Execution Engine
+         -------------------------------------------------------------------------- */
+      toggleStartPause() {
+        this.sound.init();
+
+        if (this.isRunning) {
+          this.pauseTimer();
+        } else {
+          this.startTimer();
+        }
+      }
+
+      startTimer() {
+        if (this.phase === PHASES.IDLE || this.phase === PHASES.FINISHED) {
+          // Check if there is prep time
+          if (this.currentPreset.prepSec > 0) {
+            this.phase = PHASES.PREPARE;
+            this.phaseRemainingSec = this.currentPreset.prepSec;
+            this.phaseTotalDuration = this.currentPreset.prepSec;
+          } else {
+            this.phase = PHASES.WORK;
+            this.phaseRemainingSec = this.currentPreset.workSec;
+            this.phaseTotalDuration = this.currentPreset.workSec;
+            this.sound.playPhaseSwitchSound(true);
+          }
+          this.currentSet = 1;
+        }
+
+        this.isRunning = true;
+        this.lastTimestamp = performance.now();
+        this.accumulatedMs = 0;
+
+        // Auto request wakeLock
+        this.wakeLock.requestLock();
+
+        this.updateThemeAndBadge();
+        this.updateMainButtonState();
+        this.updateDisplay();
+
+        clearInterval(this.timerInterval);
+        this.timerInterval = setInterval(() => this.tick(), 100);
+      }
+
+      pauseTimer() {
+        this.isRunning = false;
+        clearInterval(this.timerInterval);
+        this.updateMainButtonState();
+        this.phaseBadge.classList.add('pulse');
+      }
+
+      resetTimer() {
+        this.isRunning = false;
+        clearInterval(this.timerInterval);
+        this.phase = PHASES.IDLE;
+        this.currentSet = 1;
+        this.phaseRemainingSec = this.currentPreset.workSec;
+        this.phaseTotalDuration = this.currentPreset.workSec;
+
+        this.updateThemeAndBadge();
+        this.updateDisplay();
+        this.updateStats();
+        this.updateMainButtonState();
+      }
+
+      tick() {
+        if (!this.isRunning) return;
+
+        const now = performance.now();
+        const delta = now - this.lastTimestamp;
+        this.lastTimestamp = now;
+
+        this.accumulatedMs += delta;
+
+        // Advance seconds
+        while (this.accumulatedMs >= 1000) {
+          this.accumulatedMs -= 1000;
+          this.phaseRemainingSec -= 1;
+
+          // Sound triggers for last 3 seconds
+          if (this.phaseRemainingSec > 0 && this.phaseRemainingSec <= 3) {
+            this.sound.playCountdownBeep();
+          }
+
+          if (this.phaseRemainingSec <= 0) {
+            this.advanceToNextPhase();
+            break;
+          }
+        }
+
+        this.updateDisplay();
+        this.updateStats();
+      }
+
+      advanceToNextPhase() {
+        if (this.phase === PHASES.PREPARE) {
+          // Prepare -> Work Set 1
+          this.phase = PHASES.WORK;
+          this.phaseRemainingSec = this.currentPreset.workSec;
+          this.phaseTotalDuration = this.currentPreset.workSec;
+          this.sound.playPhaseSwitchSound(true);
+        } else if (this.phase === PHASES.WORK) {
+          // Work -> Rest (or Finished if last set and rest is skipped/not applicable)
+          if (this.currentSet >= this.currentPreset.sets) {
+            this.finishWorkout();
+            return;
+          } else {
+            this.phase = PHASES.REST;
+            this.phaseRemainingSec = this.currentPreset.restSec;
+            this.phaseTotalDuration = this.currentPreset.restSec;
+            this.sound.playPhaseSwitchSound(false);
+          }
+        } else if (this.phase === PHASES.REST) {
+          // Rest -> Next Work Set
+          this.currentSet += 1;
+          this.phase = PHASES.WORK;
+          this.phaseRemainingSec = this.currentPreset.workSec;
+          this.phaseTotalDuration = this.currentPreset.workSec;
+          this.sound.playPhaseSwitchSound(true);
+        }
+
+        this.updateThemeAndBadge();
+      }
+
+      skipCurrentPhase() {
+        if (this.phase === PHASES.IDLE || this.phase === PHASES.FINISHED) return;
+        this.advanceToNextPhase();
+        this.updateDisplay();
+        this.updateStats();
+        this.showToast('フェーズをスキップしました');
+      }
+
+      adjustPhaseTime(seconds) {
+        if (this.phase === PHASES.IDLE || this.phase === PHASES.FINISHED) return;
+        this.phaseRemainingSec = Math.max(1, this.phaseRemainingSec + seconds);
+        this.phaseTotalDuration = Math.max(this.phaseRemainingSec, this.phaseTotalDuration);
+        this.updateDisplay();
+        this.updateStats();
+        this.showToast(`${seconds > 0 ? '+' : ''}${seconds}秒 調整しました`);
+      }
+
+      finishWorkout() {
+        this.isRunning = false;
+        clearInterval(this.timerInterval);
+        this.phase = PHASES.FINISHED;
+        this.phaseRemainingSec = 0;
+
+        this.sound.playVictorySound();
+        this.updateThemeAndBadge();
+        this.updateDisplay();
+        this.updateStats();
+        this.updateMainButtonState();
+
+        // Show Victory Modal
+        this.victoryPresetName.textContent = this.currentPreset.name;
+        this.victorySets.textContent = `${this.currentPreset.sets} / ${this.currentPreset.sets}`;
+        this.victoryTotalTime.textContent = this.formatTimeMinSec(this.calculateTotalWorkoutTime(this.currentPreset));
+        this.victoryModal.classList.add('open');
+      }
+
+      /* --------------------------------------------------------------------------
+         UI Updates & Rendering
+         -------------------------------------------------------------------------- */
+      updateThemeAndBadge() {
+        this.body.setAttribute('data-phase', this.phase);
+
+        let badgeText = 'READY';
+        if (this.phase === PHASES.PREPARE) badgeText = '⏳ 準備 (GET READY)';
+        else if (this.phase === PHASES.WORK) badgeText = '🔥 トレーニング (WORK)';
+        else if (this.phase === PHASES.REST) badgeText = '💤 インターバル (REST)';
+        else if (this.phase === PHASES.FINISHED) badgeText = '🏆 COMPLETE!';
+
+        this.phaseBadge.textContent = badgeText;
+        if (this.isRunning) {
+          this.phaseBadge.classList.remove('pulse');
+        } else {
+          this.phaseBadge.classList.add('pulse');
+        }
+      }
+
+      updateDisplay() {
+        // Digital clock text (MM:SS)
+        this.digitalTimer.textContent = this.formatTimeMinSec(this.phaseRemainingSec);
+
+        // Circular progress gauge
+        // Circumference: 2 * PI * 130 = 816.814
+        const circumference = 816.814;
+        let progress = 1;
+        if (this.phaseTotalDuration > 0) {
+          progress = Math.max(0, Math.min(1, this.phaseRemainingSec / this.phaseTotalDuration));
+        }
+        const offset = circumference * (1 - progress);
+        this.gaugeProgress.style.strokeDashoffset = offset;
+
+        // Set indicator
+        this.setIndicator.textContent = `${this.currentSet} / ${this.currentPreset.sets}`;
+
+        // Next phase preview
+        if (this.phase === PHASES.PREPARE) {
+          this.nextPhaseInfo.innerHTML = `次: <span>WORK ${this.formatTimeMinSec(this.currentPreset.workSec)}</span>`;
+        } else if (this.phase === PHASES.WORK) {
+          if (this.currentSet >= this.currentPreset.sets) {
+            this.nextPhaseInfo.innerHTML = `次: <span>ゴール！ (全セット完了)</span>`;
+          } else {
+            this.nextPhaseInfo.innerHTML = `次: <span>REST ${this.formatTimeMinSec(this.currentPreset.restSec)}</span>`;
+          }
+        } else if (this.phase === PHASES.REST) {
+          this.nextPhaseInfo.innerHTML = `次: <span>SET ${this.currentSet + 1} (${this.formatTimeMinSec(this.currentPreset.workSec)})</span>`;
+        } else {
+          this.nextPhaseInfo.innerHTML = `全 ${this.currentPreset.sets} セット (${this.formatTimeMinSec(this.currentPreset.workSec)} ワーク / ${this.formatTimeMinSec(this.currentPreset.restSec)} 休憩)`;
+        }
+      }
+
+      updateStats() {
+        this.statPresetName.textContent = this.currentPreset.name;
+
+        // Total remaining time in workout
+        const totalOverall = this.calculateTotalWorkoutTime(this.currentPreset);
+        const remainingOverall = this.calculateRemainingTotalTime();
+
+        this.statRemainingTotal.textContent = this.formatTimeMinSec(remainingOverall);
+        this.statOverallTotal.textContent = this.formatTimeMinSec(totalOverall);
+      }
+
+      calculateTotalWorkoutTime(p) {
+        const prep = p.prepSec || 0;
+        const workTotal = p.workSec * p.sets;
+        const restTotal = p.restSec * Math.max(0, p.sets - 1);
+        return prep + workTotal + restTotal;
+      }
+
+      calculateRemainingTotalTime() {
+        if (this.phase === PHASES.FINISHED) return 0;
+        if (this.phase === PHASES.IDLE) return this.calculateTotalWorkoutTime(this.currentPreset);
+
+        let rem = this.phaseRemainingSec;
+        const p = this.currentPreset;
+
+        if (this.phase === PHASES.PREPARE) {
+          // remaining prep + all work + all rest
+          return rem + (p.workSec * p.sets) + (p.restSec * Math.max(0, p.sets - 1));
+        }
+
+        const remainingSets = p.sets - this.currentSet;
+        if (this.phase === PHASES.WORK) {
+          // remaining this work + (remainingSets * work) + (remainingSets * rest)
+          return rem + (remainingSets * p.workSec) + (remainingSets * p.restSec);
+        } else if (this.phase === PHASES.REST) {
+          // remaining this rest + (remainingSets * work) + ((remainingSets - 1) * rest)
+          return rem + (remainingSets * p.workSec) + (Math.max(0, remainingSets - 1) * p.restSec);
+        }
+
+        return rem;
+      }
+
+      updateMainButtonState() {
+        if (this.isRunning) {
+          this.playIcon.style.display = 'none';
+          this.pauseIcon.style.display = 'block';
+          this.mainBtnText.textContent = 'PAUSE';
+          this.mainToggleBtn.style.filter = 'brightness(1.1)';
+        } else {
+          this.playIcon.style.display = 'block';
+          this.pauseIcon.style.display = 'none';
+          this.mainBtnText.textContent = this.phase === PHASES.IDLE ? 'START' : 'RESUME';
+          this.mainToggleBtn.style.filter = 'none';
+        }
+      }
+
+      updateWakeLockUI(active) {
+        if (active) {
+          this.wakeLockBtn.classList.add('wakelock-active');
+        } else {
+          this.wakeLockBtn.classList.remove('wakelock-active');
+        }
+      }
+
+      toggleSound() {
+        this.sound.soundEnabled = !this.sound.soundEnabled;
+        if (this.sound.soundEnabled) {
+          this.soundIconOn.style.display = 'block';
+          this.soundIconOff.style.display = 'none';
+          this.soundToggleBtn.classList.add('active');
+          this.showToast('サウンド: ON 🔊');
+          this.sound.playCountdownBeep();
+        } else {
+          this.soundIconOn.style.display = 'none';
+          this.soundIconOff.style.display = 'block';
+          this.soundToggleBtn.classList.remove('active');
+          this.showToast('サウンド: OFF 🔇');
+        }
+      }
+
+      /* --------------------------------------------------------------------------
+         Modal & Presets CRUD
+         -------------------------------------------------------------------------- */
+      openPresetsModal() {
+        this.renderModalPresetsList();
+        this.hideForm();
+        this.presetsModal.classList.add('open');
+      }
+
+      closePresetsModal() {
+        this.presetsModal.classList.remove('open');
+      }
+
+      renderModalPresetsList() {
+        const presets = this.presetMgr.presets;
+        const activeId = this.presetMgr.activePresetId;
+
+        this.modalPresetList.innerHTML = '';
+        presets.forEach(p => {
+          const item = document.createElement('div');
+          item.className = `preset-item ${p.id === activeId ? 'active' : ''}`;
+          item.innerHTML = `
+            <div class="preset-item-info">
+              <div class="preset-item-name">${this.escapeHtml(p.name)} ${p.id === activeId ? '✓' : ''}</div>
+              <div class="preset-item-specs">
+                🔥 ${this.formatTimeMinSec(p.workSec)} / 💤 ${this.formatTimeMinSec(p.restSec)} × ${p.sets}セット
+                ${p.prepSec ? `(準備 ${p.prepSec}s)` : ''}
+              </div>
+            </div>
+            <div class="preset-item-actions">
+              <button class="preset-action-btn edit-btn" title="編集">✏️</button>
+              ${presets.length > 1 ? `<button class="preset-action-btn delete delete-btn" title="削除">🗑️</button>` : ''}
+            </div>
+          `;
+
+          // Select on info click
+          item.querySelector('.preset-item-info').addEventListener('click', () => {
+            this.applyPreset(p);
+            this.closePresetsModal();
+            this.showToast(`「${p.name}」を選択しました`);
+          });
+
+          // Edit button
+          item.querySelector('.edit-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.openEditPreset(p);
+          });
+
+          // Delete button
+          const delBtn = item.querySelector('.delete-btn');
+          if (delBtn) {
+            delBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (confirm(`「${p.name}」を削除しますか？`)) {
+                this.presetMgr.deletePreset(p.id);
+                this.renderModalPresetsList();
+                this.renderPresetChips();
+                this.applyPreset(this.presetMgr.getActivePreset());
+                this.showToast('削除しました');
+              }
+            });
+          }
+
+          this.modalPresetList.appendChild(item);
+        });
+      }
+
+      openCreateForm() {
+        this.editingPresetId = null;
+        this.formTitle.textContent = '新規メニュー作成';
+        this.inputPresetName.value = '';
+        this.inputWorkMin.value = 0;
+        this.inputWorkSec.value = 30;
+        this.inputRestMin.value = 0;
+        this.inputRestSec.value = 15;
+        this.formSets = 5;
+        this.formPrepSec = 5;
+        this.inputSetsDisplay.textContent = '5';
+        this.inputPrepDisplay.textContent = '5秒';
+
+        this.presetFormContainer.style.display = 'block';
+        this.toggleCreateFormBtn.style.display = 'none';
+        this.presetFormContainer.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      openEditPreset(p) {
+        this.editingPresetId = p.id;
+        this.formTitle.textContent = `メニュー編集: ${p.name}`;
+        this.inputPresetName.value = p.name;
+        
+        this.inputWorkMin.value = Math.floor(p.workSec / 60);
+        this.inputWorkSec.value = p.workSec % 60;
+        this.inputRestMin.value = Math.floor(p.restSec / 60);
+        this.inputRestSec.value = p.restSec % 60;
+
+        this.formSets = p.sets;
+        this.formPrepSec = p.prepSec || 5;
+        this.inputSetsDisplay.textContent = this.formSets;
+        this.inputPrepDisplay.textContent = this.formPrepSec + '秒';
+
+        this.presetFormContainer.style.display = 'block';
+        this.toggleCreateFormBtn.style.display = 'none';
+        this.presetFormContainer.scrollIntoView({ behavior: 'smooth' });
+      }
+
+      openEditCurrentPreset() {
+        this.openPresetsModal();
+        this.openEditPreset(this.currentPreset);
+      }
+
+      hideForm() {
+        this.presetFormContainer.style.display = 'none';
+        this.toggleCreateFormBtn.style.display = 'flex';
+      }
+
+      handleSavePreset() {
+        const name = this.inputPresetName.value.trim() || 'カスタムメニュー';
+        const workMin = parseInt(this.inputWorkMin.value, 10) || 0;
+        const workSec = parseInt(this.inputWorkSec.value, 10) || 0;
+        const totalWork = (workMin * 60) + workSec;
+
+        const restMin = parseInt(this.inputRestMin.value, 10) || 0;
+        const restSec = parseInt(this.inputRestSec.value, 10) || 0;
+        const totalRest = (restMin * 60) + restSec;
+
+        if (totalWork <= 0) {
+          alert('トレーニング時間は1秒以上に設定してください。');
+          return;
+        }
+
+        const id = this.editingPresetId || ('preset_' + Date.now());
+        const newPreset = {
+          id: id,
+          name: name,
+          workSec: totalWork,
+          restSec: totalRest,
+          sets: this.formSets,
+          prepSec: this.formPrepSec
+        };
+
+        this.presetMgr.addOrUpdatePreset(newPreset);
+        this.applyPreset(newPreset);
+        this.renderPresetChips();
+        this.closePresetsModal();
+        this.showToast(`「${name}」を保存しました！`);
+      }
+
+      /* --------------------------------------------------------------------------
+         Utilities
+         -------------------------------------------------------------------------- */
+      formatTimeMinSec(sec) {
+        const s = Math.max(0, Math.floor(sec));
+        const m = Math.floor(s / 60);
+        const remS = s % 60;
+        return `${String(m).padStart(2, '0')}:${String(remS).padStart(2, '0')}`;
+      }
+
+      escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      showToast(msg) {
+        this.toast.textContent = msg;
+        this.toast.classList.add('show');
+        clearTimeout(this.toastTimeout);
+        this.toastTimeout = setTimeout(() => {
+          this.toast.classList.remove('show');
+        }, 2200);
+      }
+    }
+
+    // Initialize application on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      window.fitTimerApp = new IntervalTimerApp();
+
+      // Register Service Worker for offline PWA support
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').then((reg) => {
+            console.log('FIT TIMER PRO ServiceWorker registered:', reg.scope);
+          }).catch((err) => {
+            console.log('ServiceWorker registration skipped/failed:', err);
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>
